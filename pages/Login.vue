@@ -59,7 +59,7 @@
 
 <style scoped>
   .side-photo {
-    background-image: url("../assets/images/yellow-desk-001.jpg");
+    background-image: url("../assets/images/yellow-desk-002.jpg");
   }
 
   .gg-user {
