@@ -23,7 +23,6 @@
       }
     },
     async mounted () {
-      this.$auth.fetchUser()
       const res = await this.$axios.get('/products')
       this.products = res.data
     }

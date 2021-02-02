@@ -12,10 +12,8 @@ $ cd auth-sample-client
 # install dependencies
 $ npm install
 
-# set API_AUTH_URL environment variable to 'http://localhost:1337'
-
 # build for production and launch server
-$ npm run build
+$ API_AUTH_URL=http://localhost:1337 npm run build
 $ npm run start
 
 ```
