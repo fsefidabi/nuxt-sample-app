@@ -14,7 +14,7 @@ $ npm install
 
 # build for production and launch server
 $ API_AUTH_URL=http://localhost:1337 npm run build
-$ npm run start
+$ API_AUTH_URL=http://localhost:1337 npm run start
 
 ```
 

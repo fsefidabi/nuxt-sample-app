@@ -59,7 +59,7 @@ export default {
       }
     },
     redirect: {
-      login: false,
+      login: '/login',
       register: '/register',
       logout: '/login',
       home: '/'
