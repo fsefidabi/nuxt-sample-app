@@ -16,7 +16,6 @@
   import Navbar from '@/components/Navbar'
   export default {
     components: {Navbar, ProductComponent},
-    middleware: 'guest',
     data () {
       return {
         products: []
