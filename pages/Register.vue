@@ -57,6 +57,7 @@
     methods: {
       async register () {
         try {
+          this.$axios.setToken(false)
           await this.$axios.post('auth/local/register', {
               username: this.username,
               email: this.email,
