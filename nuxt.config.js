@@ -57,11 +57,6 @@ export default {
             method: 'post',
             propertyName: 'jwt'
           },
-          user: {
-            url: 'users/me',
-            method: 'get',
-            propertyName: false
-          },
           logout: false
         }
       }

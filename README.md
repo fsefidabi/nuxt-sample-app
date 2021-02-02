@@ -12,7 +12,7 @@ $ cd auth-sample-client
 # install dependencies
 $ npm install
 
-# set environment variable API_AUTH_URL
+# set API_AUTH_URL environment variable to 'http://localhost:1337'
 
 # build for production and launch server
 $ npm run build
@@ -22,7 +22,7 @@ $ npm run start
 
 Application is running on http://localhost:3000
 
-### Available commands
+### Other available commands
 
 ```bash
 # serve with hot reload at localhost:3000
