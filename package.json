@@ -16,6 +16,7 @@
     "core-js": "^3.8.3",
     "css.gg": "^2.0.0",
     "nuxt": "^2.14.12",
+    "vue-meta": "^2.4.0",
     "vuex": "^3.6.2"
   },
   "devDependencies": {

@@ -17,14 +17,22 @@
   export default {
     components: {Navbar, ProductComponent},
     middleware: 'guest',
-    data () {
+    head () {
       return {
-        products: []
+        title: 'Laptops',
+        meta: [
+          {
+            hid: 'description',
+            name: 'description',
+            content:
+              'List of some random products to test the SSR behavior of Nuxt.js'
+          }
+        ]
       }
     },
-    async mounted () {
-      const res = await this.$axios.get('/products')
-      this.products = res.data
+    async asyncData ({$axios}) {
+      const products = await $axios.$get('/products')
+      return { products }
     }
   }
 </script>
