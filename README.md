@@ -17,12 +17,9 @@ $ API_AUTH_URL=http://localhost:1337 npm run build
 $ API_AUTH_URL=http://localhost:1337 npm run start
 ```
 
-Application is running on http://localhost:3000
+Application is running on http://localhost:3000.
 
-To use all features you should also clone and run the [backend application](https://github.com/fsefidabi/auth-sample-server.git)
-
-You can also compare this app with its similar [Vue3 SPA version](https://github.com/fsefidabi/vue-sample-app.git).
-
+To use all features you should also clone and run the [backend application](https://github.com/fsefidabi/auth-sample-server.git).
 
 ### Other available commands
 
@@ -33,3 +30,11 @@ $ npm run dev
 # generate static project
 $ npm run generate
 ```
+
+Similar applications to compare:
+
+- [Vue3 SPA application](https://github.com/fsefidabi/vue-sample-app.git)
+
+- [Quasar1 SPA and SSR application](https://github.com/fsefidabi/quasar1-sample-app.git)
+
+- [Quasar2 SPA application](https://github.com/fsefidabi/quasar2-sample-app.git)
