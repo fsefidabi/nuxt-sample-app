@@ -18,6 +18,8 @@
     "css.gg": "^2.0.0",
     "gojs": "^2.1.13",
     "gojs-vue": "^1.0.1",
+    "jointjs": "^3.3.1",
+    "jquery": "^3.6.0",
     "nuxt": "^2.14.12",
     "vue-class-component": "^7.2.6",
     "vue-meta": "^2.4.0",

@@ -7,7 +7,7 @@
 <script>
   import GoJsDiagram from '../components/GoJsDiagram'
   export default {
-    name: 'GoJs',
+    name: 'gojs',
     components: { GoJsDiagram },
     setup () {
       const diagramData = { // passed to <diagram> as its modelData

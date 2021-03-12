@@ -2,6 +2,7 @@
   <div class="flex w-screen">
     <div ref='diagramEl' class="w-full h-screen" style='background-color: #faf9fe'></div>
     <div ref='paletteEl' class="w-2/6 h-screen" style='background-color: #faf9fe; border: 1px solid #ddd'></div>
+    <div class="bg-red-600 w-48 h-36 absolute z-10"></div>
   </div>
 </template>
 
