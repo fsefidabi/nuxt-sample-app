@@ -1,7 +1,7 @@
 <template>
   <div class="flex w-screen h-screen">
     <div id="mainCanvas" ref="mainCanvas"></div>
-    <div class="w-1/3 bg-gray-200 py-3 px-5">
+    <div class="w-1/3 h-screen bg-gray-200 py-3 px-5 overflow-y-scroll overflow-x-hidden">
       <div>
         <span class="font-bold text-sm">Triggers</span>
         <div id="triggersPalette" ref="triggersPalette"></div>
@@ -11,10 +11,6 @@
         <div id="actionsPalette" ref="actionsPalette"></div>
       </div>
     </div>
-    <!--        <div id="flyPaper"-->
-    <!--             ref="flyPaper"-->
-    <!--             style="position:fixed; z-index:100; opacity:0.7; pointer-event:none;">-->
-    <!--        </div>-->
   </div>
 </template>
 
@@ -22,6 +18,8 @@
   import {onMounted, shallowSsrRef, ssrRef} from '@nuxtjs/composition-api'
   import * as joint from 'jointjs'
   import $ from 'jquery'
+  import { smartSegmentTrigger, listTrigger, timeTrigger } from '../assets/jointJs/nodes/triggerNodes'
+  import { addDelayAction } from '../assets/jointJs/nodes/actionNodes'
 
   export default {
     name: 'jointjs',
@@ -30,10 +28,12 @@
       const canvasGraph = new joint.dia.Graph
       const triggersGraph = new joint.dia.Graph
       const actionsGraph = new joint.dia.Graph
+      const conditionsGraph = new joint.dia.Graph
       const flyPaperGraph = new joint.dia.Graph
       const mainCanvas = shallowSsrRef({v: 'init'})
       const triggersPalette = shallowSsrRef({v: 'init'})
       const actionsPalette = shallowSsrRef({v: 'init'})
+      const conditionsPalette = shallowSsrRef({v: 'init'})
       const flyPaper = shallowSsrRef({v: 'init'})
       onMounted(() => {
         // Canvas where shapes are dropped
@@ -46,8 +46,6 @@
           drawGrid: true
         })
 
-        jointjsCanvas.setGrid('doubleMesh').drawGrid()
-
         // Palette from which you take shapes
         const jointjsTriggersPalette = new joint.dia.Paper({
           el: triggersPalette.value,
@@ -56,74 +54,139 @@
           height: 200,
           interactive: false
         })
-        const smartSegmentTrigger = new joint.shapes.standard.InscribedImage({
-          position: {
-            x: 25,
-            y: 30
-          },
-          size: {
-            width: 50,
-            height: 50
-          },
-          attrs: {
-            background: {
-              fill: '#ff1e1e'
-            },
-            label: {
-              text: 'Smart \nSegment \nTrigger',
-              lineHeight: 15,
-              fontSize: 12
-            },
-            image: {
-              xlinkHref: 'https://www.flaticon.com/svg/vstatic/svg/2361/2361939.svg?token=exp=1615564173~hmac=b1e6d2dc89e3efa02e8fdb143cf0c28a'
-            }
-          }
-        })
-        const timeTrigger = new joint.shapes.standard.InscribedImage({
-          position: {
-            x: 125,
-            y: 30
-          },
-          size: {
-            width: 50,
-            height: 50
-          },
-          attrs: {
-            background: {
-              fill: '#ffa333',
-            },
-            label: {
-              text: 'List Trigger',
-              fontSize: 12
-            },
-            image: {
-              xlinkHref: 'https://www.flaticon.com/svg/vstatic/svg/2088/2088617.svg?token=exp=1615564080~hmac=922b018ea248c77bb27b8b81f3ed9cd2'
-            }
-          }
-        })
-        const listTrigger = new joint.shapes.standard.InscribedImage({
-          position: {
-            x: 235,
-            y: 30
-          },
-          size: {
-            width: 50,
-            height: 50
-          },
-          attrs: {
-            background: {
-              fill: '#17e831'
-            },
-            label: {
-              text: 'List Trigger',
-              fontSize: 12
-            },
-            image: {
-              xlinkHref: 'https://www.flaticon.com/svg/vstatic/svg/507/507205.svg?token=exp=1615563824~hmac=81377172575db86e885c86657d075959'
-            }
-          }
-        })
         triggersGraph.addCells([smartSegmentTrigger, listTrigger, timeTrigger])
+        jointjsTriggersPalette.on('cell:pointerdown', async function (cellView, e, x, y) {
+          $('body').append('<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>')
+          const jointjsFlyPaper = new joint.dia.Paper({
+            el: $('#flyPaper'),
+            model: flyPaperGraph,
+            width: '100%',
+            height: '100%',
+            interactive: false
+          })
+          const flyShape = cellView.model.clone()
+          const pos = cellView.model.position()
+          const offset = {
+            x: x - pos.x,
+            y: y - pos.y
+          }
+          flyShape.position(0, 0)
+          flyPaperGraph.addCell(flyShape)
+          $('#flyPaper').offset({
+            left: e.pageX - offset.x,
+            top: e.pageY - offset.y
+          })
+
+          $('body').on('mousemove.fly', function (e) {
+            $('#flyPaper').offset({
+              left: e.pageX - offset.x,
+              top: e.pageY - offset.y
+            })
+          })
+          $('body').on('mouseup.fly', function (e) {
+            const x = e.pageX
+            const y = e.pageY
+            const target = jointjsCanvas.$el.offset()
+
+            // Dropped over paper ?
+            if (x > target.left && x < target.left + jointjsCanvas.$el.width() && y > target.top && y < target.top +
+              jointjsCanvas.$el.height()) {
+              const s = flyShape.clone()
+              console.log(s)
+              joint.shapes.devs.ChabokTriggerNode = joint.shapes.devs.Model.extend({
+                markup:
+                  '<g class="rotatable shadow-sm"><g class="scalable"><circle class="body"/></g><image/><text class="label"/><g class="outPorts"/></g>',
+                defaults: joint.util.deepSupplement({
+                  type: 'devs.TriggerNode',
+                  size: {
+                    width: 80,
+                    height: 80
+                  },
+                  attrs: {
+                    '.body': {
+                      stroke: '#000',
+                      filter: {
+                        name: 'dropShadow',
+                        args: {
+                          dx: 0,
+                          dy: 0,
+                          blur: 10,
+                          color: '#ddd'
+                        }
+                      }
+                    },
+                    circle: {
+                      r: 70,
+                      stroke: '#000',
+                      fill: s.attributes.attrs.background.fill
+                    },
+                    '.label': {
+                      text: s.attributes.attrs.label.text.replace('\n', ""),
+                      lineHeight: 20,
+                      'ref-y': -20,
+                      'font-size': 15,
+                      transform: 'matrix(1,0,0,1,-80,-25)'
+                    },
+                    '.outPorts circle': {
+                      fill: '#262626'
+                    },
+                    '.joint-port': {
+                      transform: 'matrix(1,0,0,1,5,0)'
+                    },
+                    image: {
+                      'xlink:href': s.attributes.attrs.image.xlinkHref,
+                      width: 80,
+                      height: 50,
+                      'ref-x': .5,
+                      'ref-y': .5,
+                      ref: 'circle',
+                      'x-alignment': 'middle',
+                      'y-alignment': 'top'
+                    }
+                  }
+
+                }, joint.shapes.devs.Model.prototype.defaults)
+              })
+              joint.shapes.devs.ChabokTriggerNodeView = joint.shapes.devs.ModelView
+
+              const triggerNode = new joint.shapes.devs.ChabokTriggerNode({
+                position: {
+                  x: x - target.left - offset.x,
+                  y: y - target.top - offset.y
+                },
+                size: {
+                  width: 160,
+                  height: 160
+                },
+                outPorts: [''],
+                ports: {
+                  groups: {
+                    'out': {
+                      attrs: {
+                        '.port-body': {
+                          r: 15,
+                          fill: '#47b6a3',
+                          stroke: '#fff',
+                          transform: 'matrix(1,0,0,1,-78,-78)'
+                        }
+                      }
+                    }
+                  }
+                }
+              })
+              canvasGraph.addCell(triggerNode)
+              const removeButton = new joint.elementTools.Remove({
+                useModelGeometry: true,
+                y: '-35%',
+                x: '-35%'
+              })
+              showRemoveButton(removeButton, triggerNode, jointjsCanvas)
+            }
+            $('body').off('mousemove.fly').off('mouseup.fly')
+            flyShape.remove()
+            $('#flyPaper').remove()
+          })
+        })
 
         const jointjsActionsPalette = new joint.dia.Paper({
           el: actionsPalette.value,
@@ -132,32 +195,8 @@
           height: 200,
           interactive: false
         })
-        const addDelayAction = new joint.shapes.standard.BorderedImage({
-          position: {
-            x: 25,
-            y: 30
-          },
-          size: {
-            width: 50,
-            height: 50
-          },
-          attrs: {
-            background: {
-              fill: '#17e831',
-            },
-            label: {
-              text: 'Add Delay',
-              fontSize: 12
-            },
-            image: {
-              xlinkHref:
-                'https://www.flaticon.com/svg/vstatic/svg/0/838.svg?token=exp=1615565871~hmac=517ab49f85c321d0f66a2b3ded59b47e'
-            }
-          }
-        })
         actionsGraph.addCells([addDelayAction])
-        jointjsTriggersPalette.on('cell:pointerdown', async function (cellView, e, x, y) {
-          visible()
+        jointjsActionsPalette.on('cell:pointerdown', async function (cellView, e, x, y) {
           $('body').append('<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>')
           const jointjsFlyPaper = new joint.dia.Paper({
             el: $('#flyPaper'),
@@ -193,79 +232,152 @@
             if (x > target.left && x < target.left + jointjsCanvas.$el.width() && y > target.top && y < target.top +
               jointjsCanvas.$el.height()) {
               const s = flyShape.clone()
-              s.position(x - target.left - offset.x, y - target.top - offset.y)
-              canvasGraph.addCell(s)
+              joint.shapes.devs.ChabokActionNode = joint.shapes.devs.Model.extend({
+                markup:
+                  '<g class="rotatable shadow-sm"><g class="scalable"><rect class="body"/></g><image/><text class="label"/><g class="outPorts"/></g>',
+                defaults: joint.util.deepSupplement({
+                  type: 'devs.ActionNode',
+                  size: {
+                    width: 80,
+                    height: 80
+                  },
+                  attrs: {
+                    '.body': {
+                      stroke: '#000',
+                      filter: {
+                        name: 'dropShadow',
+                        args: {
+                          dx: 0,
+                          dy: 0,
+                          blur: 10,
+                          color: '#ddd'
+                        }
+                      }
+                    },
+                    rect: {
+                      r: 70,
+                      stroke: '#000',
+                      fill: s.attributes.attrs.background.fill
+                    },
+                    '.label': {
+                      text: s.attributes.attrs.label.text.replace('\n', ""),
+                      lineHeight: 20,
+                      'ref-y': -20,
+                      'font-size': 15,
+                      transform: 'matrix(1,0,0,1,0,55)'
+                    },
+                    '.outPorts circle': {
+                      fill: '#262626'
+                    },
+                    '.joint-port': {
+                      transform: 'matrix(1,0,0,1,5,0)'
+                    },
+                    image: {
+                      'xlink:href': s.attributes.attrs.image.xlinkHref,
+                      width: 60,
+                      height: 40,
+                      'ref-x': .5,
+                      'ref-y': .5,
+                      ref: 'rect',
+                      'x-alignment': 'middle',
+                      'y-alignment': 'top'
+                    }
+                  }
+                }, joint.shapes.devs.Model.prototype.defaults)
+              })
+              joint.shapes.devs.ChabokTriggerNodeView = joint.shapes.devs.ModelView
+
+              const ActionNode = new joint.shapes.devs.ChabokActionNode({
+                position: {
+                  x: x - target.left - offset.x,
+                  y: y - target.top - offset.y
+                },
+                size: {
+                  width: 140,
+                  height: 140
+                },
+                inPorts: [''],
+                outPorts: [' '],
+                ports: {
+                  groups: {
+                    'in': {
+                      attrs: {
+                        '.port-body': {
+                          r: 15,
+                          fill: '#47b6a3',
+                          stroke: '#fff',
+                         }
+                      }
+                    },
+                    'out': {
+                      attrs: {
+                        '.port-body': {
+                          r: 15,
+                          fill: '#47b6a3',
+                          stroke: '#fff',
+                        }
+                      }
+                    }
+                  }
+                }
+              })
+              ActionNode.position(x - target.left - offset.x, y - target.top - offset.y)
+              canvasGraph.addCell(ActionNode)
+              const removeButton = new joint.elementTools.Remove({
+                useModelGeometry: true
+              })
+              showRemoveButton(removeButton, ActionNode, jointjsCanvas)
             }
             $('body').off('mousemove.fly').off('mouseup.fly')
-            visible()
             flyShape.remove()
             $('#flyPaper').remove()
           })
         })
 
-        jointjsActionsPalette.on('cell:pointerdown', async function (cellView, e, x, y) {
-          visible()
-          $('body').append('<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>')
-          const jointjsFlyPaper = new joint.dia.Paper({
-            el: $('#flyPaper'),
-            model: flyPaperGraph,
-            width: '100%',
-            height: '100%',
-            interactive: false
+        jointjsCanvas.on('element:mouseenter', function (elementView) {
+          elementView.model.attr('circle/stroke', '#87888a')
+          elementView.model.attr('rect/stroke', '#87888a')
+          elementView.model.attr('circle/stroke-width', '3')
+          elementView.model.attr('rect/stroke-width', '3')
+          // console.log(elementView.model.attributes)
           })
-          const flyShape = cellView.model.clone()
-          const pos = cellView.model.position()
-          const offset = {
-            x: x - pos.x,
-            y: y - pos.y
-          }
-          flyShape.position(0, 0)
-          flyPaperGraph.addCell(flyShape)
-          $('#flyPaper').offset({
-            left: e.pageX - offset.x,
-            top: e.pageY - offset.y
-          })
-          $('body').on('mousemove.fly', function (e) {
-            $('#flyPaper').offset({
-              left: e.pageX - offset.x,
-              top: e.pageY - offset.y
-            })
-          })
-          $('body').on('mouseup.fly', function (e) {
-            const x = e.pageX,
-              y = e.pageY,
-              target = jointjsCanvas.$el.offset()
-
-            // Dropped over paper ?
-            if (x > target.left && x < target.left + jointjsCanvas.$el.width() && y > target.top && y < target.top +
-              jointjsCanvas.$el.height()) {
-              const s = flyShape.clone()
-              s.position(x - target.left - offset.x, y - target.top - offset.y)
-              canvasGraph.addCell(s)
-            }
-            $('body').off('mousemove.fly').off('mouseup.fly')
-            visible()
-            flyShape.remove()
-            $('#flyPaper').remove()
-          })
+        jointjsCanvas.on('element:mouseleave', function (elementView) {
+          elementView.model.attr('circle/stroke-width', '3')
+          elementView.model.attr('rect/stroke-width', '3')
+          elementView.model.attr('circle/stroke', elementView.model.attributes.attrs.circle.fill)
+          elementView.model.attr('rect/stroke', elementView.model.attributes.attrs.rect.fill)
         })
       })
 
-      const visible = function () {
-        flyPaperVisible.value = !flyPaperVisible.value
+      const showRemoveButton = function (removeButton, node, jointjsPaper) {
+        const toolsView = new joint.dia.ToolsView({
+          name: 'basic-tools',
+          tools: [removeButton]
+        })
+        const elementView = node.findView(jointjsPaper)
+        elementView.addTools(toolsView)
+        elementView.hideTools()
+        jointjsPaper.on('element:mouseenter', function (elementView) {
+          elementView.showTools()
+        })
+        jointjsPaper.on('element:mouseleave', function (elementView) {
+          elementView.hideTools()
+        })
       }
 
       return {
-        visible,
         flyPaperVisible,
         mainCanvas,
         flyPaper,
         canvasGraph,
         triggersGraph,
         actionsGraph,
+        conditionsGraph,
         flyPaperGraph,
         triggersPalette,
-        actionsPalette
+        actionsPalette,
+        conditionsPalette,
+        showRemoveButton
       }
     }
   }

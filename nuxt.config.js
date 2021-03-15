@@ -1,6 +1,10 @@
+const webpack = require('webpack')
 require('dotenv').config()
 
 export default {
+  // Enable server-side rendering (https://go.nuxtjs.dev/ssr-mode)
+  ssr: false,
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     title: 'nuxt-auth-sample',
@@ -15,6 +19,9 @@ export default {
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
       { rel: 'stylesheet', href: 'https://css.gg/css' }
+    ],
+    script: [
+      {src: 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'}
     ]
   },
 
@@ -69,5 +76,15 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+    plugins: [
+      new webpack.ProvidePlugin({
+        '$': 'jquery',
+        'jquery': 'jquery',
+        'window.jQuery': 'jquery',
+        'jQuery': 'jquery'
+      })
+    ],
+    transpile: ['drawflow'],
+    vendor: ['diagram-library', 'diagram-library-vue', 'jquery', 'jquery-ui', 'jquery-ui/ui/widgets/draggable', 'jquery-ui/ui/widgets/droppable']
   }
 }

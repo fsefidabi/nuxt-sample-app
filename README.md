@@ -19,6 +19,12 @@ $ API_AUTH_URL=http://localhost:1337 npm run start
 
 Application is running on http://localhost:3000.
 
+List of diagramming libraries endpoints:
+
+- http://localhost:3000/gojs
+- http://localhost:3000/jointjs
+- http://localhost:3000/jsplumb
+
 To use all features you should also clone and run the [backend application](https://github.com/fsefidabi/auth-sample-server.git).
 
 ### Other available commands
